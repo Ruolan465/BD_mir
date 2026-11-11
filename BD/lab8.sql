@@ -81,6 +81,94 @@ SELECT--задание3
     oi.quantity,
     oi.price_per_unit
 FROM Orders o --первая таблиа, основная
-INNER JOIN Order_Items oi ON o.order_id = oi.order_id --присоединяем несколько таблиц, через ОН указала соединение по одинаковому столбцу
-INNER JOIN Products p ON oi.product_id = p.product_id -- аналогично присоединила вторую таблицу
+JOIN Order_Items oi ON o.order_id = oi.order_id --присоединяем несколько таблиц, через ОН указала соединение по одинаковому столбцу
+JOIN Products p ON oi.product_id = p.product_id -- аналогично присоединила вторую таблицу
 WHERE o.order_id = 1; --указала условие, оставила только 1 заказ
+--задание 4
+SELECT full_name--вывела имена покупателей
+FROM Customers--из таблицы покупателей
+WHERE customer_id IN ( -- только тех покупателей, которые подходят по условию ИН
+    SELECT customer_id -- выбрала id покупателей
+    FROM Orders o-- из таблицы заказов
+    JOIN Order_Items oi ON o.order_id = oi.order_id -- соединяем заказы с их позициями
+    JOIN Products p ON oi.product_id = p.product_id -- соединяем позиции заказов с товарами
+    WHERE p.product_name = 'Смартфон' -- Добавила условие, выводящие только заказы смартфонов
+);
+-- задание 5
+SELECT product_name, price -- вывела название и цену товаров
+FROM Products -- из таблицы товаров
+WHERE price > (SELECT AVG(price) FROM Products); -- оставляем товары дороже средней цены, avg вычисляет среднее значение цены 
+-- задание 6
+SELECT order_id, order_date -- вывела номер и дату заказа
+FROM Orders o -- из таблицы ордерс
+WHERE EXISTS ( -- проверяем, существует ли подходящая позиция заказа
+    SELECT 1 -- проверяем наличие любой записи
+    FROM Order_Items oi -- из таблицы позиций заказов
+    JOIN Products p ON oi.product_id = p.product_id -- соединяем позиции с товарами
+    WHERE oi.order_id = o.order_id -- связываем позицию с айди заказа
+    AND p.price > 100000 -- оставляем товары дороже 100 000
+);
+--заание 7
+SELECT full_name -- вывела имена
+FROM Customers -- из таблицы покупателей
+WHERE customer_id NOT IN ( --условие для исключение из списка
+    SELECT customer_id -- указала ID покупателей
+    FROM Orders o-- из таблицы заказов
+    JOIN Order_Items oi ON o.order_id = oi.order_id -- соединяем заказы с позициями
+    JOIN Products p ON oi.product_id = p.product_id -- соединяем позиции с товарами
+    WHERE p.product_name = 'Ноутбук' -- оставляем только заказы с ноутбуком
+);--полчился список покупателей, которые не покупали ноутбук
+
+SELECT DISTINCT--без повторений
+c.full_name --какие таблицы нужно вывеести
+FROM Customers c
+LEFT JOIN Orders o ON c.customer_id = o.customer_id-- объеденила покупатлей и заказы по id покупателя
+LEFT JOIN Order_Items oi ON o.order_id = oi.order_id -- соединяем заказы с их позициями
+LEFT JOIN Products p ON oi.product_id = p.product_id -- соединяем позиции с товарами
+WHERE p.product_name IS NULL OR p.product_name <> 'Ноутбук'; -- оставляем покупателей без ноутбука. Покупатели без покупок(нул) по сути тоже бех ноутбууа
+--- задание 8
+SELECT p.product_name -- вывела названия товаров
+FROM Order_Items oi -- из заказанных товаров
+RIGHT JOIN Products p ON oi.product_id = p.product_id -- сохранила все строки товаров,  объединила с заказами
+WHERE oi.product_id IS NULL; -- оставла только те, у которых нул в заказе
+SELECT-- задание 9
+    c.full_name, -- вывела имена покупателей
+    p.product_name, -- вывела названия товаров
+    oi.quantity -- вывела количество товаров
+FROM Customers c -- 1 таблица, покупатели
+FULL OUTER JOIN Orders o ON c.customer_id = o.customer_id -- сохранив все записи,соединяем покупателей с заказами
+FULL OUTER JOIN Order_Items oi ON o.order_id = oi.order_id -- сохранив все записи, соединяем заказы с их позициями
+FULL OUTER JOIN Products p ON oi.product_id = p.product_id; -- сохранив все товары, соединяем позиции с товарами
+--нул там, где нет совпадений среди таблиц
+--задание10
+SELECT DISTINCT c.full_name -- вывела имена покупателей без повторений
+FROM Customers c -- берем данные из таблицы покупателей
+JOIN Orders o ON c.customer_id = o.customer_id -- соединяем покупателей с заказами
+JOIN Order_Items oi ON o.order_id = oi.order_id -- соединяем заказы с их позициями
+JOIN Products p ON oi.product_id = p.product_id -- соединяем позиции с товарами
+WHERE p.price = (SELECT MAX(price) FROM Products); -- оставляем покупателей, купивших самый дорогой товар
+SELECT full_name -- вывела имена покупателей
+FROM Customers -- из таблицы покупателей
+WHERE customer_id IN ( -- оставляем покупателей из списка подзапроса по условию
+    SELECT customer_id -- взяла ID покупателей
+    FROM Orders -- из таблицы заказов
+    WHERE order_id IN ( -- оставляем нужные заказы по ИН
+        SELECT order_id -- взяла ID заказов
+        FROM Order_Items -- из таблицы позиций заказов
+        WHERE product_id IN ( -- оставила позиции с нужными товарами
+            SELECT product_id -- выбираем ID самых дорогих товаров
+            FROM Products -- из таблицы товаров
+            WHERE price = (SELECT MAX(price) FROM Products) -- находим товар с максимальной ценой
+        )
+    )
+);
+SELECT--задание11
+    c.full_name, -- выводим имена покупателей
+    p.category -- выводим категории товаров
+FROM Customers c -- берем данные из таблицы покупателей
+CROSS JOIN Products p; -- создаем все возможные комбинации покупателей и товаров
+SELECT--задание12
+    recommender.full_name AS recommended_by, -- вывела имя того, кто порекомендовал
+    customer.full_name AS new_customer -- вывела имя нового покупателя
+FROM Customers customer -- первая таблица покупателей
+JOIN Customers recommender ON customer.recommended_by = recommender.customer_id; -- соединила покупателя с тем, кто его порекомендовал
