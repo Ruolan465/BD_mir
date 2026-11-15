@@ -156,6 +156,26 @@ SELECT
 FROM readers
 GROUP BY phone
 HAVING COUNT(*) > 1;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 --labrab 7
 SELECT * FROM readers;--вывела полный список читателей
 SELECT title, year_publish FROM books;-- вывела только название и год публикации книг

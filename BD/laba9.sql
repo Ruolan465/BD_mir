@@ -173,6 +173,17 @@ SELECT--задание12
 FROM Customers customer -- первая таблица покупателей
 JOIN Customers recommender ON customer.recommended_by = recommender.customer_id; -- соединила покупателя с тем, кто его порекомендовал
 
+
+
+
+
+
+
+
+
+
+
+
 --практика 9
 SELECT full_name from customers;--прост проверила, правильно ли открыла бд
 
